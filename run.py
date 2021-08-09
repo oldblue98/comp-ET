@@ -9,6 +9,8 @@ import torch
 from torch import nn
 #import cudf
 
+import sys
+sys.path.append('sam/')
 from sam import SAM
 
 from sklearn.preprocessing import LabelEncoder
