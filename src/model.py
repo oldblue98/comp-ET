@@ -129,10 +129,6 @@ class ImageModel(nn.Module):
         x = self.dropout(x)
         x = self.fc(x)
         x = self.bn(x)
-        # if self.use_fc or self.training:
-        #     x = self.dropout(x)
-        #     x = self.fc(x)
-        #     x = self.bn(x)
         return x
 
 def train_func(train_loader, model, device, criterion, optimizer, debug=True, sam=False):
@@ -250,8 +246,8 @@ def get_image_predictions(df, embeddings):
             predictions.append(posting_ids)
 
         df["oof"] = predictions
-        df['f1'] = df.apply(getMetric('oof'),axis=1)
-        threshold_score.append(df.f1.mean())
+        df['auc'] = df.apply(getMetric('oof'),axis=1)
+        threshold_score.append(df.auc.mean())
 
     threshold_score = np.array(threshold_score)
     best_threshold = np.argmax(threshold_score)

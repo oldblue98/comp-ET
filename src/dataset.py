@@ -20,9 +20,9 @@ class ImageDataset(Dataset):
         image_path = self.image_paths[index]
         target = self.labels[index]
 
-        image = cv2.imread(image_path)
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-
+        image = np.load(image_path)
+        image = np.vstack(image[::2, ...]).astype(float)
+        image = cv2.resize(image, (image.shape[0]//2, image.shape[0]//2))
         if self.augmentations:
             augmented = self.augmentations(image=image)
             image = augmented['image']

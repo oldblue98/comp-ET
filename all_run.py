@@ -45,11 +45,11 @@ def main():
     # train 用 df の作成
     train_df = pd.DataFrame()
     df, image_paths = read_dataset()
-    train_df["label"] = df["label_group"]
+    train_df["label"] = df["target"]
     train_df["image_path"] = image_paths
 
-    le = LabelEncoder()
-    train_df.label = le.fit_transform(train_df.label)
+    # le = LabelEncoder()
+    # train_df.label = le.fit_transform(train_df.label)
 
     # modelの作成
     seed_everything(config['seed'])

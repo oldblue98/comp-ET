@@ -6,6 +6,7 @@ import pandas as pd
 import torch
 import cv2
 import matplotlib.pyplot as plt
+from sklearn.metrics import roc_auc_score
 
 def seed_everything(seed):
     "seed値を一括指定"
@@ -18,19 +19,16 @@ def seed_everything(seed):
     torch.backends.cudnn.benchmark = True
 
 def read_dataset():
-    df = pd.read_csv('./data/input/train.csv')
-    tmp = df.groupby('label_group').posting_id.agg('unique').to_dict()
-    df['target'] = df.label_group.map(tmp)
+    df = pd.read_csv('./data/input/train_labels.csv')
     #df_cu = cudf.DataFrame(df)
-    image_paths = './data/input/train_images/' + df['image']
+    image_paths = "./data/input/train/" + df["id"][0] + "/" + df["id"] + ".npy"
     #return df, df_cu, image_paths
     return df, image_paths
 
 def getMetric(col):
-    def f1score(row):
-        n = len( np.intersect1d(row.target,row[col]) )
-        return 2*n / (len(row.target)+len(row[col]))
-    return f1score
+    def rocscore(row):
+        return roc_auc_score(row.target, row[col])
+    return rocscore
 
 def f1_score(y_true, y_pred):
     y_true = y_true.apply(lambda x: set(x.split()))
