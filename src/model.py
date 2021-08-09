@@ -151,12 +151,12 @@ def train_func(train_loader, model, device, criterion, optimizer, debug=True, sa
             loss = criterion(logits, targets)
             loss.backward()
             optimizer.first_step(zero_grad=True)
-            logits = model(images, targets)
+            logits = model(images)
             loss = criterion(logits, targets)
             loss.backward()
             optimizer.second_step(zero_grad=True)
         else:
-            logits = model(images, targets)
+            logits = model(images)
             loss = criterion(logits, targets)
             loss.backward()
             optimizer.step()
@@ -183,7 +183,7 @@ def valid_func(train_loader, model, device, criterion):
             images, targets = images.to(device), targets.to(device).long()
             #images, targets = images.cuda(), targets.cuda()
 
-            logits = model(images, targets)
+            logits = model(images)
 
             PREDS += [torch.argmax(logits, 1).detach().cpu()]
             TARGETS += [targets.detach().cpu()]
@@ -200,6 +200,22 @@ def valid_func(train_loader, model, device, criterion):
 
     loss_valid = np.mean(losses)
     return loss_valid, accuracy
+
+def get_prediction(model, valid_loader, device):
+    preds = []
+    sig=torch.nn.Sigmoid()
+    with torch.no_grad():
+        for img,label in tqdm(valid_loader):
+            #img = img.cuda()
+            img = img.to(device)
+            label = label.to(device).long()
+            feat = model(img)
+            image_prediction = feat.detach().cpu().numpy()
+            preds.append(image_prediction)
+    image_predictions = np.concatenate(preds)
+    image_predictions = np.array(image_predictions)[:,1]
+    image_predictions = sig(torch.from_numpy(image_predictions))
+    return image_predictions
 
 def get_image_embeddings(model, valid_loader, device):
     embeds = []

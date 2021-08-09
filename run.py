@@ -9,6 +9,8 @@ import torch
 from torch import nn
 #import cudf
 
+from sam import SAM
+
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import StratifiedKFold, GroupKFold
 
@@ -40,11 +42,11 @@ def main():
     # train 用 df の作成
     train_df = pd.DataFrame()
     df, image_paths = read_dataset()
-    train_df["label"] = df["label_group"]
+    train_df["label"] = df["target"]
     train_df["image_path"] = image_paths
 
-    le = LabelEncoder()
-    train_df.label = le.fit_transform(train_df.label)
+    # le = LabelEncoder()
+    # train_df.label = le.fit_transform(train_df.label)
 
     # modelの作成
     seed_everything(config['seed'])
@@ -66,8 +68,8 @@ def main():
         train_ = train_df.loc[trn_idx,:].reset_index(drop=True)
         valid_ = train_df.loc[val_idx,:].reset_index(drop=True)
 
-        train_ds = ShopeeDataset(train_, transforms=get_train_transforms(config["img_size"]))
-        valid_ds = ShopeeDataset(valid_, transforms=get_valid_transforms(config["img_size"]))
+        train_ds = ImageDataset(train_, transforms=get_train_transforms(config["img_size"]))
+        valid_ds = ImageDataset(valid_, transforms=get_valid_transforms(config["img_size"]))
 
         train_loader = torch.utils.data.DataLoader(
             train_ds,
@@ -85,7 +87,7 @@ def main():
             pin_memory=True,
         )
 
-        model = ShopeeModel(
+        model = ImageModel(
                 train_df.label.nunique(),
                 config["model_name"],
                 config["model_type"],
@@ -98,13 +100,14 @@ def main():
         model.eval()
         model = model.to(device)
 
-        optimizer = torch.optim.Adam(model.parameters(), lr=config['schedular_params']['lr_start'], weight_decay=config['weight_decay'])
-        #scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=config['T_0'], T_mult=1, eta_min=config['min_lr'], last_epoch=-1)
-        scheduler = ShopeeScheduler(optimizer, **config["schedular_params"])
+        # optimizer = torch.optim.Adam(model.parameters(), lr=config['schedular_params']['lr_start'], weight_decay=config['weight_decay'])
+        base_optimizer = torch.optim.Adam
+        optimizer = SAM(model.parameters(), base_optimizer, lr=config['schedular_params']['lr_start'], weight_decay=config['weight_decay'])
+        scheduler = MyScheduler(optimizer, **config["schedular_params"])
         #er = EarlyStopping(config['patience'])
 
-        loss_tr = nn.CrossEntropyLoss().to(device)
-        loss_vl = nn.CrossEntropyLoss().to(device)
+        loss_tr = nn.BCEWithLogitsLoss().to(device)
+        loss_vl = nn.BCEWithLogitsLoss().to(device)
 
         for epoch in range(config["epochs"]):
             scheduler.step()
@@ -115,7 +118,7 @@ def main():
             print("train_loss : ", loss_train)
             print("valid_loss : ", loss_valid)
 
-            torch.save(model.state_dict(), f'save/{config["model_name"]}_epoch{epoch}.pth')
+            torch.save(model.state_dict(), f'save/{config["model_name"]}_epoch{epoch}_fold{fold}.pth')
 
         del model, train_loader, valid_loader, optimizer, scheduler
 
