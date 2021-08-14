@@ -152,7 +152,7 @@ def train_func(train_loader, model, device, criterion, optimizer, debug=True, sa
         # SAM
         if sam:
             logits = model(images)
-            targets = torch.unsqueeze(targets, 1).type_as(logits)
+            targets = targets.view(-1, 1)
             loss = criterion(logits, targets)
             loss.backward()
             optimizer.first_step(zero_grad=True)
@@ -162,7 +162,7 @@ def train_func(train_loader, model, device, criterion, optimizer, debug=True, sa
             optimizer.second_step(zero_grad=True)
         else:
             logits = model(images)
-            targets = torch.unsqueeze(targets, 1).type_as(logits)
+            targets = targets.view(-1, 1)
             loss = criterion(logits, targets)
             loss.backward()
             optimizer.step()
