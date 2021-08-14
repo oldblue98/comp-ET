@@ -25,6 +25,7 @@ def main():
     # config file upload
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', default='./config/default.json')
+    parser.add_argument('--debug', action="store_true")
     options = parser.parse_args()
     config = json.load(open(options.config))
 
@@ -90,7 +91,7 @@ def main():
                 )
         preds = []
         for fold, (trn_idx, val_idx) in enumerate(folds):
-            if fold > 0: # 時間がかかるので最初のモデルのみ
+            if fold > 0 or options.debug: # 時間がかかるので最初のモデルのみ
                 break
             model.load_state_dict(torch.load(f'save/{config["model_name"]}_epoch{epoch}_fold{fold}.pth'))
             model = model.to(device)
