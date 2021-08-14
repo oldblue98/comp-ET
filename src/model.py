@@ -69,7 +69,7 @@ class ArcMarginProduct(nn.Module):
 
 class ImageModel(nn.Module):
     def __init__(self, n_classes, model_name, model_type, fc_dim, margin, scale, device,
-                 use_fc=True, pretrained=True, training=True, in_channels : int=3):
+                 use_fc=True, pretrained=True, training=True, in_channels : int=1):
 
         super(ImageModel,self).__init__()
         print('Building Model Backbone for {} model'.format(model_name))
