@@ -76,26 +76,28 @@ class ImageModel(nn.Module):
 
         self.backbone = timm.create_model(model_name, num_classes=0, pretrained=pretrained, in_chans=in_channels)
         self.model_type = model_type
+        in_features = self.backbone.num_features
+        print(f"{model_name}: {in_features}")
 
-        if model_type == 'res':
-            final_in_features = self.backbone.fc.in_features
-            self.backbone.fc = nn.Identity()
-            self.backbone.global_pool = nn.Identity()
+        # if model_type == 'res':
+        #     final_in_features = self.backbone.fc.in_features
+        #     self.backbone.fc = nn.Identity()
+        #     self.backbone.global_pool = nn.Identity()
 
-        elif model_type == 'eff':
-            final_in_features = self.backbone.classifier.in_features
-            self.backbone.classifier = nn.Identity()
-            self.backbone.global_pool = nn.Identity()
+        # elif model_type == 'eff':
+        #     final_in_features = self.backbone.classifier.in_features
+        #     self.backbone.classifier = nn.Identity()
+        #     self.backbone.global_pool = nn.Identity()
 
-        elif model_type == 'vit':
-            final_in_features = self.backbone.head.in_features
-            self.backbone.head = nn.Identity()
-            self.backbone.global_pool = nn.Identity()
+        # elif model_type == 'vit':
+        #     final_in_features = self.backbone.head.in_features
+        #     self.backbone.head = nn.Identity()
+        #     self.backbone.global_pool = nn.Identity()
 
-        elif model_type == "fnet":
-            final_in_features = self.backbone.head.fc.in_features
-            self.backbone.head.fc = nn.Identity()
-            self.backbone.head.global_pool = nn.Identity()
+        # elif model_type == "fnet":
+        #     final_in_features = self.backbone.head.fc.in_features
+        #     self.backbone.head.fc = nn.Identity()
+        #     self.backbone.head.global_pool = nn.Identity()
 
         self.pooling =  nn.AdaptiveAvgPool2d(1)
 
@@ -103,7 +105,7 @@ class ImageModel(nn.Module):
         self.training = training
 
         self.dropout = nn.Dropout(p=0.0)
-        self.fc = nn.Linear(final_in_features, fc_dim)
+        self.fc = nn.Linear(in_features, fc_dim)
         self.bn = nn.BatchNorm1d(fc_dim)
         self._init_params()
         final_in_features = fc_dim
