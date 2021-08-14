@@ -74,7 +74,7 @@ class ImageModel(nn.Module):
         super(ImageModel,self).__init__()
         print('Building Model Backbone for {} model'.format(model_name))
 
-        self.backbone = timm.create_model(model_name, num_classes=0, pretrained=pretrained, in_chans=in_channels, num_classes=n_classes)
+        self.backbone = timm.create_model(model_name, num_classes=0, pretrained=pretrained, in_chans=in_channels)
         self.model_type = model_type
         in_features = self.backbone.num_features
         print(f"{model_name}: {in_features}, fc_dim :{fc_dim}")
@@ -120,7 +120,7 @@ class ImageModel(nn.Module):
         nn.init.constant_(self.bn.bias, 0)
 
     def forward(self, image):
-        feature = self.backbone(image)
+        feature = self.extract_feat(image)
         return feature
 
     def extract_feat(self, x):
@@ -142,7 +142,7 @@ def train_func(train_loader, model, device, criterion, optimizer, debug=True, sa
 
     losses = []
     for batch_idx, (images, targets) in enumerate(bar):
-        images, targets = images.to(device), targets.to(device).long()
+        images, targets = images.to(device, dtype=torch.float), targets.to(device, dtype=torch.float)
         #images, targets = images.cuda(), targets.cuda()
 
         if debug and batch_idx == 10:
@@ -186,7 +186,7 @@ def valid_func(train_loader, model, device, criterion):
     PREDS = []
     with torch.no_grad():
         for batch_idx, (images, targets) in enumerate(bar):
-            images, targets = images.to(device), targets.to(device).long()
+            images, targets = images.to(device, dtype=torch.float), targets.to(device, dtype=torch.float)
             #images, targets = images.cuda(), targets.cuda()
 
             logits = model(images)
