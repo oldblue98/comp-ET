@@ -77,7 +77,7 @@ class ImageModel(nn.Module):
         self.backbone = timm.create_model(model_name, num_classes=0, pretrained=pretrained, in_chans=in_channels)
         self.model_type = model_type
         in_features = self.backbone.num_features
-        print(f"{model_name}: {in_features}")
+        print(f"{model_name}: {in_features}, fc_dim :{fc_dim}")
 
         # if model_type == 'res':
         #     final_in_features = self.backbone.fc.in_features
@@ -106,6 +106,7 @@ class ImageModel(nn.Module):
 
         self.dropout = nn.Dropout(p=0.0)
         self.fc = nn.Linear(in_features, fc_dim)
+        self.fc_ = nn.Linear(fc_dim, n_classes)
         self.bn = nn.BatchNorm1d(fc_dim)
         self._init_params()
         final_in_features = fc_dim
@@ -131,6 +132,7 @@ class ImageModel(nn.Module):
         x = self.dropout(x)
         x = self.fc(x)
         x = self.bn(x)
+        x = self.fc_(x)
         return x
 
 def train_func(train_loader, model, device, criterion, optimizer, debug=True, sam=False):
