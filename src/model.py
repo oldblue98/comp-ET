@@ -126,8 +126,8 @@ class ImageModel(nn.Module):
         batch_size = x.shape[0]
         x = self.backbone(x)
 
-        if self.model_type != 'vit':
-            x = self.pooling(x).view(batch_size, -1)
+        # if self.model_type != 'vit':
+        #     x = self.pooling(x).view(batch_size, -1)
         x = self.dropout(x)
         x = self.fc(x)
         x = self.bn(x)
