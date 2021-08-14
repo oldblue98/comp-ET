@@ -142,8 +142,7 @@ def train_func(train_loader, model, device, criterion, optimizer, debug=True, sa
 
     losses = []
     for batch_idx, (images, targets) in enumerate(bar):
-        images, targets = images.to(device), targets.to(device).long()
-        targets = torch.unsqueeze(targets, 1)
+        images, targets = images.to(device), targets.to(device)
         #images, targets = images.cuda(), targets.cuda()
 
         if debug and batch_idx == 10:
@@ -153,6 +152,7 @@ def train_func(train_loader, model, device, criterion, optimizer, debug=True, sa
         # SAM
         if sam:
             logits = model(images)
+            targets = torch.unsqueeze(targets, 1).type_as(logits)
             loss = criterion(logits, targets)
             loss.backward()
             optimizer.first_step(zero_grad=True)
@@ -162,6 +162,7 @@ def train_func(train_loader, model, device, criterion, optimizer, debug=True, sa
             optimizer.second_step(zero_grad=True)
         else:
             logits = model(images)
+            targets = torch.unsqueeze(targets, 1).type_as(logits)
             loss = criterion(logits, targets)
             loss.backward()
             optimizer.step()
@@ -185,8 +186,7 @@ def valid_func(train_loader, model, device, criterion):
     PREDS = []
     with torch.no_grad():
         for batch_idx, (images, targets) in enumerate(bar):
-            images, targets = images.to(device), targets.to(device).long()
-            targets = torch.unsqueeze(targets, 1)
+            images, targets = images.to(device), targets.to(device)
             #images, targets = images.cuda(), targets.cuda()
 
             logits = model(images)
@@ -194,6 +194,7 @@ def valid_func(train_loader, model, device, criterion):
             PREDS += [torch.argmax(logits, 1).detach().cpu()]
             TARGETS += [targets.detach().cpu()]
 
+            targets = torch.unsqueeze(targets, 1).type_as(logits)
             loss = criterion(logits, targets)
             losses.append(loss.item())
             smooth_loss = np.mean(losses[-30:])
