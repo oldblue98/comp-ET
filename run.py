@@ -3,6 +3,7 @@ import argparse
 import datetime
 import logging
 import json
+from typing import Tuple
 import pandas as pd
 import os
 import torch
@@ -113,7 +114,7 @@ def main():
 
         for epoch in range(config["epochs"]):
             scheduler.step()
-            loss_train = train_func(train_loader, model, device, loss_tr, optimizer, debug=config["debug"])
+            loss_train = train_func(train_loader, model, device, loss_tr, optimizer, debug=config["debug"], sam=True)
             loss_valid, accuracy = valid_func(valid_loader, model, device, loss_tr)
             logging.debug(f"{epoch}epoch : loss_train > {loss_train} looss_valid > {loss_valid}")
 
