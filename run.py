@@ -90,7 +90,7 @@ def main():
         )
 
         model = ImageModel(
-                train_df.label.nunique(),
+                1,
                 config["model_name"],
                 config["model_type"],
                 config["fc_dim"],
