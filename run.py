@@ -59,12 +59,11 @@ def main():
     folds = StratifiedKFold(
                 n_splits=config['fold_num'],
                 shuffle=True,
-                random_state=config['seed']).split(np.arange(train_df.shape[0]),
-                train_df.label.values
-            ).split(np.arange(train_df.shape[0]), train_df.label.values)
+                random_state=config['seed']
+                ).split(np.arange(train_df.shape[0]), train_df.label.values)
 
     for fold, (trn_idx, val_idx) in enumerate(folds):
-        if fold > 0 or options.debug: # 時間がかかるので最初のモデルのみ
+        if fold > 0 and options.debug: # 時間がかかるので最初のモデルのみ
             break
         print(f'Training with fold {fold} started (train:{len(trn_idx)}, val:{len(val_idx)})')
 
