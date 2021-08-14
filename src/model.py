@@ -142,7 +142,7 @@ def train_func(train_loader, model, device, criterion, optimizer, debug=True, sa
 
     losses = []
     for batch_idx, (images, targets) in enumerate(bar):
-        images, targets = images.to(device), targets.to(device)
+        images, targets = images.to(device), targets.to(device).long()
         #images, targets = images.cuda(), targets.cuda()
 
         if debug and batch_idx == 10:
@@ -186,7 +186,7 @@ def valid_func(train_loader, model, device, criterion):
     PREDS = []
     with torch.no_grad():
         for batch_idx, (images, targets) in enumerate(bar):
-            images, targets = images.to(device), targets.to(device)
+            images, targets = images.to(device), targets.to(device).long()
             #images, targets = images.cuda(), targets.cuda()
 
             logits = model(images)
