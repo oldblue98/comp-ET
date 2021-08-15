@@ -214,13 +214,13 @@ def get_prediction(model, valid_loader, device):
     with torch.no_grad():
         for img,label in tqdm(valid_loader):
             #img = img.cuda()
-            img = img.to(device)
-            label = label.to(device).long()
+            img = img.to(device, dtype=torch.float)
+            label = label.to(device, dtype=torch.float)
             feat = model(img)
             image_prediction = feat.detach().cpu().numpy()
             preds.append(image_prediction)
     image_predictions = np.concatenate(preds)
-    image_predictions = np.array(image_predictions)[:,1]
+    image_predictions = np.array(image_predictions)
     image_predictions = sig(torch.from_numpy(image_predictions))
     return image_predictions
 

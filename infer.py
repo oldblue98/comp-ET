@@ -64,8 +64,9 @@ def main():
     # modelの作成
     seed_everything(config['seed'])
     device = torch.device(config['device'])
+    n_used_epoch = 2
 
-    for epoch in range(config["epochs"]-3, config["epochs"]):
+    for epoch in range(config["epochs"]-n_used_epoch, config["epochs"]):
 
         print(f'inference epoch{epoch} start')
 
@@ -89,7 +90,16 @@ def main():
                     random_state=config['seed']).split(np.arange(train_df.shape[0]),
                     train_df.label.values
                 )
-        preds = []
+
+        test_preds = []
+        val_preds = []
+        valid_index = []
+        cols = ["id", "oof", "target"]
+        oof_df = pd.DataFrame(index=[i for i in range(train_df.shape[0])],columns=cols)
+        oof_df["id"] = train_df.id
+        oof_df["target"] = train_df.target
+        oof_df["oof"] = 0
+
         for fold, (trn_idx, val_idx) in enumerate(folds):
             if fold > 0 or options.debug: # 時間がかかるので最初のモデルのみ
                 break
@@ -119,15 +129,31 @@ def main():
 
             valid_predictions = get_prediction(model, valid_loader, device)
             test_prediction = get_prediction(model, test_loader, device)
+            val_preds.append(valid_predictions)
+            test_preds.append(test_prediction)
+            valid_index.append(val_idx)
             del model
-            valid_["oof"] = valid_predictions
-            valid_['roc'] = valid_.apply(getMetric('oof'),axis=1)
 
-            logging.debug(f"{epoch} epoch, {fold} fold")
-            logging.debug(f" CV_score : {valid_.roc.mean()}")
-            # logging.debug(f" scores : {scores.mean()}")
+        val_preds = np.concatenate(val_preds)
+        valid_index = np.concatenate(valid_index)
+        order = np.argsort(valid_index)
+        oof_df["oof"] += val_preds[order]
+        score = roc_auc_score(oof_df.target, oof_df.oof)
+        logging.debug(f"{epoch} epoch")
+        logging.debug(f" CV_score : {score}")
+        # logging.debug(f" scores : {scores.mean()}")
 
     del model, valid_loader, valid_predictions
+
+    # submission
+    sub = pd.read_csv("./data/input/sample_submission.csv")
+    sub["target"] = np.mean(test_preds, axis=0)
+    file_name = os.path.basename(options.config).split(".")[0]
+    sub.to_csv(f"./data/output/{file_name}.csv")
+
+    # oof
+    oof_df["oof"] /= n_used_epoch
+    oof_df.to_csv(f"./data/output/{file_name}_oof.csv")
 
 if __name__ == '__main__':
     main()

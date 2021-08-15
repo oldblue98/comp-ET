@@ -28,7 +28,7 @@ def read_dataset():
 def read_test_dataset():
     df = pd.read_csv('./data/input/sample_submission.csv')
     #df_cu = cudf.DataFrame(df)
-    image_paths = "./data/input/train/" + df["id"].apply(lambda x:x[0]) + "/" + df["id"] + ".npy"
+    image_paths = "./data/input/test/" + df["id"].apply(lambda x:x[0]) + "/" + df["id"] + ".npy"
     #return df, df_cu, image_paths
     return df, image_paths
 
