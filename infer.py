@@ -49,11 +49,11 @@ def main():
     df_test, test_paths = read_test_dataset()
 
     train_df["image_path"] = image_paths
-    train_df["target"] = df["target"]
+    train_df["label"] = df["target"]
     train_df["id"] = df["id"]
 
     test_df["image_path"] = test_paths
-    test_df["target"] = df_test["target"]
+    test_df["label"] = df_test["target"]
     test_df["id"] = df_test["id"]
 
     del df
@@ -88,16 +88,16 @@ def main():
                     n_splits=config['fold_num'],
                     shuffle=True,
                     random_state=config['seed']).split(np.arange(train_df.shape[0]),
-                    train_df.target.values
+                    train_df.label.values
                 )
 
         test_preds = []
         val_preds = []
         valid_index = []
-        cols = ["id", "oof", "target"]
+        cols = ["id", "oof", "label"]
         oof_df = pd.DataFrame(index=[i for i in range(train_df.shape[0])],columns=cols)
         oof_df["id"] = train_df.id
-        oof_df["target"] = train_df.target
+        oof_df["label"] = train_df.label
         oof_df["oof"] = 0
 
         for fold, (trn_idx, val_idx) in enumerate(folds):
@@ -138,7 +138,7 @@ def main():
         valid_index = np.concatenate(valid_index)
         order = np.argsort(valid_index)
         oof_df["oof"] += val_preds[order]
-        score = roc_auc_score(oof_df.target, oof_df.oof)
+        score = roc_auc_score(oof_df.label, oof_df.oof)
         logging.debug(f"{epoch} epoch")
         logging.debug(f" CV_score : {score}")
         # logging.debug(f" scores : {scores.mean()}")
@@ -147,7 +147,7 @@ def main():
 
     # submission
     sub = pd.read_csv("./data/input/sample_submission.csv")
-    sub["target"] = np.mean(test_preds, axis=0)
+    sub["label"] = np.mean(test_preds, axis=0)
     file_name = os.path.basename(options.config).split(".")[0]
     sub.to_csv(f"./data/output/{file_name}.csv")
 
