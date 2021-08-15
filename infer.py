@@ -81,7 +81,7 @@ def main():
                 )
 
         model.eval()
-        
+
         # dataset, dataloafer作成
         folds = StratifiedKFold(
                     n_splits=config['fold_num'],
@@ -129,6 +129,7 @@ def main():
             )
 
             valid_predictions = get_prediction(model, valid_loader, device)
+            print(valid_predictions.shape)
             test_prediction = get_prediction(model, test_loader, device)
             val_preds.append(valid_predictions)
             test_preds.append(test_prediction)
