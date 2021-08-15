@@ -30,6 +30,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', default='./config/default.json')
     parser.add_argument('--debug', action="store_true")
+    parser.add_argument('--device', default="0")
     options = parser.parse_args()
     config = json.load(open(options.config))
 
@@ -54,7 +55,7 @@ def main():
 
     # modelの作成
     seed_everything(config['seed'])
-    device = torch.device(config['device'])
+    device = torch.device(f"cuda:{options.device}")
 
     # dataset, dataloafer作成
     folds = StratifiedKFold(
