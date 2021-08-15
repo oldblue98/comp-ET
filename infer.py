@@ -102,7 +102,7 @@ def main():
         print(oof_df.shape)
 
         for fold, (trn_idx, val_idx) in enumerate(folds):
-            if fold > 0 or options.debug: # 時間がかかるので最初のモデルのみ
+            if fold > 0 and options.debug: # 時間がかかるので最初のモデルのみ
                 break
             model.load_state_dict(torch.load(f'save/{config["model_name"]}_epoch{epoch}_fold{fold}.pth'))
             model = model.to(device)
