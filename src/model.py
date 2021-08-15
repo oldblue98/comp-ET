@@ -88,7 +88,7 @@ class ImageModel(nn.Module):
             nb_ft = self.backbone._fc.in_features
             self.backbone._fc = nn.Identity()
         elif hasattr(self.backbone, "classifier"):
-            nb_ft = self.backbone.classifier.num_features
+            nb_ft = self.backbone.classifier.in_features
             self.backbone.classifier = nn.Identity()
         elif hasattr(self.backbone, "last_linear"):
             nb_ft = self.backbone.last_linear.in_features
