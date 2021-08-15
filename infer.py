@@ -145,7 +145,7 @@ def main():
         logging.debug(f" CV_score : {score}")
         # logging.debug(f" scores : {scores.mean()}")
 
-    del model, valid_loader, valid_predictions
+    del valid_loader, valid_predictions
 
     # submission
     sub = pd.read_csv("./data/input/sample_submission.csv")
