@@ -71,7 +71,7 @@ def main():
         print(f'inference epoch{epoch} start')
 
         model = ImageModel(
-                    train_df.label.nunique(),
+                    1,
                     config["model_name"],
                     config["model_type"],
                     config["fc_dim"],
@@ -88,7 +88,7 @@ def main():
                     n_splits=config['fold_num'],
                     shuffle=True,
                     random_state=config['seed']).split(np.arange(train_df.shape[0]),
-                    train_df.label.values
+                    train_df.target.values
                 )
 
         test_preds = []
