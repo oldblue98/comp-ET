@@ -99,6 +99,7 @@ def main():
         oof_df["id"] = train_df.id
         oof_df["label"] = train_df.label
         oof_df["oof"] = 0
+        print(oof_df.shape)
 
         for fold, (trn_idx, val_idx) in enumerate(folds):
             if fold > 0 or options.debug: # 時間がかかるので最初のモデルのみ
