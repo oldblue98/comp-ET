@@ -94,7 +94,7 @@ class ImageModel(nn.Module):
             nb_ft = self.backbone.last_linear.in_features
             self.backbone.last_linear = nn.Identity()
         elif hasattr(self.backbone, "head"):
-            nb_ft = self.backbone.head.num_features
+            nb_ft = self.backbone.num_features
             self.backbone.head = nn.Identity()
 
         self.block1 = nn.Sequential(
