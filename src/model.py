@@ -148,7 +148,7 @@ class ImageModel(nn.Module):
         # self.fc = nn.Linear(in_features, fc_dim)
         # self.fc_ = nn.Linear(fc_dim, n_classes)
         # self.bn = nn.BatchNorm1d(fc_dim)
-        self._init_params()
+        # self._init_params()
         final_in_features = fc_dim
 
         # self.final = 
