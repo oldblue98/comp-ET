@@ -165,7 +165,7 @@ def main():
     # submission
     sub = pd.read_csv("./data/input/sample_submission.csv")
     sub["target"] = np.mean(test_preds, axis=0)
-    sub.to_csv(f"./data/output/{config_filename}.csv", drop=True)
+    sub.to_csv(f"./data/output/{config_filename}.csv", index=False)
 
     # oof
     oof_df["oof"] /= n_used_epoch
