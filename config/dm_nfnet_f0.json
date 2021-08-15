@@ -4,6 +4,7 @@
     "model_name": "dm_nfnet_f0",
     "model_type" : "fnet",
     "img_size":512,
+    "output_size":256,
     "epochs": 10,
     "fc_dim": 512,
     "train_bs": 24,
