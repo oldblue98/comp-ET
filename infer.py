@@ -30,16 +30,31 @@ def main():
     config = json.load(open(options.config))
 
     # log file
-    now = datetime.datetime.now()
-    logging.basicConfig(
-        filename='./logs/infer_' + config["model_name"] + '_'+ '{0:%Y%m%d%H%M%S}.log'.format(now), level=logging.DEBUG
-    )
-    logging.debug('infer')
-    logging.debug('date : {0:%Y,%m/%d,%H:%M:%S}'.format(now))
-    log_list = ["img_size", "train_bs", "monitor"]
+    # now = datetime.datetime.now()
+    # logging.basicConfig(
+    #     filename='./logs/infer_' + config["model_name"] + '_'+ '{0:%Y%m%d%H%M%S}.log'.format(now), level=logging.DEBUG
+    # )
+    # logging.debug('infer')
+    # logging.debug('date : {0:%Y,%m/%d,%H:%M:%S}'.format(now))
+    # log_list = ["img_size", "train_bs", "monitor"]
 
-    for log_c in log_list:
-        logging.debug(f"{log_c} : {config[log_c]}")
+    # for log_c in log_list:
+    #     logging.debug(f"{log_c} : {config[log_c]}")
+    from logging import getLogger, StreamHandler,FileHandler, Formatter, DEBUG, INFO
+    logger = getLogger("logger")    #logger名loggerを取得
+    logger.setLevel(DEBUG)  #loggerとしてはDEBUGで
+    #handler1を作成
+    handler_stream = StreamHandler()
+    handler_stream.setLevel(DEBUG)
+    handler_stream.setFormatter(Formatter("%(asctime)s: %(message)s"))
+    #handler2を作成
+    config_filename = os.path.basename(options.config).split(".")[0]
+    handler_file = FileHandler(filename=f'./logs/infer_{config_filename}.log')
+    handler_file.setLevel(DEBUG)
+    handler_file.setFormatter(Formatter("%(asctime)s: %(message)s"))
+    #loggerに2つのハンドラを設定
+    logger.addHandler(handler_stream)
+    logger.addHandler(handler_file)
 
     # train 用 df の作成
     train_df = pd.DataFrame()
@@ -150,12 +165,11 @@ def main():
     # submission
     sub = pd.read_csv("./data/input/sample_submission.csv")
     sub["label"] = np.mean(test_preds, axis=0)
-    file_name = os.path.basename(options.config).split(".")[0]
-    sub.to_csv(f"./data/output/{file_name}.csv")
+    sub.to_csv(f"./data/output/{config_filename}.csv")
 
     # oof
     oof_df["oof"] /= n_used_epoch
-    oof_df.to_csv(f"./data/output/{file_name}_oof.csv")
+    oof_df.to_csv(f"./data/output/{config_filename}_oof.csv")
 
 if __name__ == '__main__':
     main()
