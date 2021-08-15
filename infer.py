@@ -128,9 +128,9 @@ def main():
                 pin_memory=True,
             )
 
-            valid_predictions = get_prediction(model, valid_loader, device)
+            valid_predictions = get_prediction(model, valid_loader, device).detach().cpu().numpy()
             print(valid_predictions.shape, valid_predictions.max(), valid_predictions.min(), valid_predictions.mean())
-            test_prediction = get_prediction(model, test_loader, device)
+            test_prediction = get_prediction(model, test_loader, device).detach().cpu().numpy()
             val_preds.append(valid_predictions)
             test_preds.append(test_prediction)
             valid_index.append(val_idx)
