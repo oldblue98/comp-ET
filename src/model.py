@@ -78,7 +78,7 @@ class ImageModel(nn.Module):
         self.output_size = output_size
         self.r = 1
 
-        self.backbone = timm.create_model(model_name, num_classes=0, pretrained=pretrained, in_chans=in_channels)
+        self.backbone = timm.create_model(model_name, pretrained=pretrained, in_chans=in_channels)
         self.model_type = model_type
 
         if hasattr(self.backbone, "fc"):
