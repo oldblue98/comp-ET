@@ -97,7 +97,7 @@ class ImageModel(nn.Module):
             nb_ft = self.backbone.head.fc.in_features
             self.backbone.head.fc = nn.Identity()
             self.backbone.head.global_pool = nn.Identity()
-            
+
         print("nb_ft : ", nb_ft)
         self.block1 = nn.Sequential(
                 nn.Conv2d(1, self.n, kernel_size=(7, 7), stride=(1,1), padding=(1, 1), bias=False),
@@ -179,8 +179,9 @@ class ImageModel(nn.Module):
         
         x = self.block4(x)
         x += res1
-        
+        print(x.shape)
         x = self.backbone(x)
+        print(x.shape)
         x = self.fc(x)
         return x
 
