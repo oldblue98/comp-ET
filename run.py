@@ -114,6 +114,7 @@ def main():
                 config["fc_dim"],
                 config["margin"],
                 config["scale"],
+                config["output_size"],
                 device
             )
 

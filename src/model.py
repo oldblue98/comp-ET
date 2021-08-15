@@ -68,14 +68,54 @@ class ArcMarginProduct(nn.Module):
         return output
 
 class ImageModel(nn.Module):
-    def __init__(self, n_classes, model_name, model_type, fc_dim, margin, scale, device,
+    def __init__(self, n_classes, model_name, model_type, fc_dim, margin, scale, output_size, device,
                  use_fc=True, pretrained=True, training=True, in_channels : int=1):
 
         super(ImageModel,self).__init__()
         print('Building Model Backbone for {} model'.format(model_name))
+        self.slope = .1
+        self.n = 16
+        self.output_size = output_size
+        self.r = 1
 
         self.backbone = timm.create_model(model_name, num_classes=0, pretrained=pretrained, in_chans=in_channels)
         self.model_type = model_type
+
+        if hasattr(self.backbone, "fc"):
+            nb_ft = self.backbone.fc.in_features
+            self.backbone.fc = nn.Identity()
+        elif hasattr(self.backbone, "_fc"):
+            nb_ft = self.backbone._fc.in_features
+            self.backbone._fc = nn.Identity()
+        elif hasattr(self.backbone, "classifier"):
+            nb_ft = self.backbone.classifier.in_features
+            self.backbone.classifier = nn.Identity()
+        elif hasattr(self.backbone, "last_linear"):
+            nb_ft = self.backbone.last_linear.in_features
+            self.backbone.last_linear = nn.Identity()
+        elif hasattr(self.backbone, "head"):
+            nb_ft = self.backbone.head.in_features
+            self.backbone.head = nn.Identity()
+
+        self.block1 = nn.Sequential(
+                nn.Conv2d(1, self.n, kernel_size=(7, 7), stride=(1,1), padding=(1, 1), bias=False),
+                nn.LeakyReLU(negative_slope=self.slope),
+                nn.Conv2d(self.n, self.n, kernel_size=(1, 1), stride=(1,1), padding=(1, 1), bias=False),
+                nn.LeakyReLU(negative_slope=self.slope),
+                nn.BatchNorm2d(self.n))
+        self.block2 = nn.Sequential(
+                nn.Conv2d(self.n, self.n, kernel_size=(3, 3), stride=(1,1), padding=(1, 1), bias=False),
+                nn.BatchNorm2d(self.n),
+                nn.LeakyReLU(negative_slope=self.slope),
+                nn.Conv2d(self.n, self.n, kernel_size=(3, 3), stride=(1,1), padding=(1, 1), bias=False),
+                nn.BatchNorm2d(self.n))
+        self.block3 = nn.Sequential(
+                nn.Conv2d(self.n, self.n, kernel_size=(3, 3), stride=(1,1), padding=(1, 1), bias=False),
+                nn.BatchNorm2d(self.n))
+        self.block4 = nn.Sequential(
+                nn.Conv2d(self.n, 1, kernel_size=(7, 7), stride=(1, 1), padding=(3, 3), bias=False))
+        self.fc = nn.Linear(nb_ft, self.cfg.target_size)
+
         in_features = self.backbone.num_features
         print(f"{model_name}: {in_features}, fc_dim :{fc_dim}")
 
@@ -99,15 +139,15 @@ class ImageModel(nn.Module):
         #     self.backbone.head.fc = nn.Identity()
         #     self.backbone.head.global_pool = nn.Identity()
 
-        self.pooling =  nn.AdaptiveAvgPool2d(1)
+        # self.pooling =  nn.AdaptiveAvgPool2d(1)
 
         self.use_fc = use_fc
         self.training = training
 
-        self.dropout = nn.Dropout(p=0.0)
-        self.fc = nn.Linear(in_features, fc_dim)
-        self.fc_ = nn.Linear(fc_dim, n_classes)
-        self.bn = nn.BatchNorm1d(fc_dim)
+        # self.dropout = nn.Dropout(p=0.0)
+        # self.fc = nn.Linear(in_features, fc_dim)
+        # self.fc_ = nn.Linear(fc_dim, n_classes)
+        # self.bn = nn.BatchNorm1d(fc_dim)
         self._init_params()
         final_in_features = fc_dim
 
@@ -119,9 +159,28 @@ class ImageModel(nn.Module):
         nn.init.constant_(self.bn.weight, 1)
         nn.init.constant_(self.bn.bias, 0)
 
-    def forward(self, image):
-        feature = self.extract_feat(image)
-        return feature
+    def forward(self, x):
+        res1 = F.interpolate(x, size=(self.output_size, self.output_size), mode='bilinear')
+        x = self.block1(x)
+        res2 = F.interpolate(x, size=(self.output_size, self.output_size), mode='bilinear')
+
+        x = self.block2(res2)
+        x += res2
+        if self.r > 1:
+            for _ in range(self.r):
+                res2 = x
+                x = self.block2(x)
+                x += res2
+ 
+        x = self.block3(x)
+        x += res2
+        
+        x = self.block4(x)
+        x += res1
+        
+        x = self.backbone(x)
+        x = self.fc(x)
+        return x
 
     def extract_feat(self, x):
         batch_size = x.shape[0]
