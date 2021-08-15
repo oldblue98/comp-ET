@@ -96,7 +96,7 @@ class ImageModel(nn.Module):
         elif hasattr(self.backbone, "head"):
             nb_ft = self.backbone.num_features
             self.backbone.head = nn.Identity()
-
+        print("nb_ft : ", nb_ft)
         self.block1 = nn.Sequential(
                 nn.Conv2d(1, self.n, kernel_size=(7, 7), stride=(1,1), padding=(1, 1), bias=False),
                 nn.LeakyReLU(negative_slope=self.slope),
