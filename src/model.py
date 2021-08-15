@@ -217,6 +217,7 @@ def get_prediction(model, valid_loader, device):
             img = img.to(device, dtype=torch.float)
             label = label.to(device, dtype=torch.float)
             feat = model(img)
+            feat = sig(feat)[..., 0]
             image_prediction = feat.detach().cpu().numpy()
             preds.append(image_prediction)
     image_predictions = np.concatenate(preds)
