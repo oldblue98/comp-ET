@@ -179,9 +179,7 @@ class ImageModel(nn.Module):
         
         x = self.block4(x)
         x += res1
-        print(x.shape)
         x = self.backbone(x)
-        print(x.shape)
         x = self.fc(x)
         return x
 
