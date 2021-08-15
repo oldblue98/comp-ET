@@ -169,7 +169,7 @@ def main():
 
     # oof
     oof_df["oof"] /= n_used_epoch
-    oof_df.to_csv(f"./data/output/{config_filename}_oof.csv")
+    oof_df.to_csv(f"./data/output/{config_filename}_oof.csv", index=False)
 
 if __name__ == '__main__':
     main()
