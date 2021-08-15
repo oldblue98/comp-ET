@@ -69,7 +69,6 @@ def main():
     for epoch in range(config["epochs"]-n_used_epoch, config["epochs"]):
 
         print(f'inference epoch{epoch} start')
-
         model = ImageModel(
                     1,
                     config["model_name"],
@@ -82,7 +81,7 @@ def main():
                 )
 
         model.eval()
-
+        
         # dataset, dataloafer作成
         folds = StratifiedKFold(
                     n_splits=config['fold_num'],
@@ -104,6 +103,7 @@ def main():
         for fold, (trn_idx, val_idx) in enumerate(folds):
             if fold > 0 and options.debug: # 時間がかかるので最初のモデルのみ
                 break
+            
             model.load_state_dict(torch.load(f'save/{config["model_name"]}_epoch{epoch}_fold{fold}.pth'))
             model = model.to(device)
 
@@ -133,7 +133,7 @@ def main():
             val_preds.append(valid_predictions)
             test_preds.append(test_prediction)
             valid_index.append(val_idx)
-            del model
+        del model
 
         val_preds = np.concatenate(val_preds)
         valid_index = np.concatenate(valid_index)
