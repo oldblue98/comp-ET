@@ -31,8 +31,8 @@ def get_train_transforms(input_shape):
         HorizontalFlip(p=0.5),
         VerticalFlip(p=0.5),
         ShiftScaleRotate(p=0.5),
-        MotionBlur(p=.2),
-        IAASharpen(p=.25),
+        # MotionBlur(p=.2),
+        # IAASharpen(p=.25),
         Normalize(
             mean=[0.485],
             std=[0.229],
