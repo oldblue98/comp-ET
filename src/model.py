@@ -195,6 +195,27 @@ class ImageModel(nn.Module):
         x = self.fc_(x)
         return x
 
+def mixup_data(x, y, alpha=1.0, use_cuda=True):
+    '''Returns mixed inputs, pairs of targets, and lambda'''
+    if alpha > 0:
+        lam = np.random.beta(alpha, alpha)
+    else:
+        lam = 1
+
+    batch_size = x.size()[0]
+    if use_cuda:
+        index = torch.randperm(batch_size).cuda()
+    else:
+        index = torch.randperm(batch_size)
+
+    mixed_x = lam * x + (1 - lam) * x[index, :]
+    y_a, y_b = y, y[index]
+    return mixed_x, y_a, y_b, lam
+
+
+def mixup_criterion(criterion, pred, y_a, y_b, lam):
+    return lam * criterion(pred, y_a) + (1 - lam) * criterion(pred, y_b)
+
 def train_func(train_loader, model, device, criterion, optimizer, debug=True, sam=False):
     model.train()
     bar = tqdm(train_loader)
@@ -204,6 +225,8 @@ def train_func(train_loader, model, device, criterion, optimizer, debug=True, sa
     for batch_idx, (images, targets) in enumerate(bar):
         images, targets = images.to(device, dtype=torch.float), targets.to(device, dtype=torch.float)
         #images, targets = images.cuda(), targets.cuda()
+        images, targets_a, targets_b, lam = mixup_data(images, targets.view(-1, 1), use_cuda=True)
+        targets_a, targets_b = targets_a.to(device, dtype=torch.float), targets_a.to(device, dtype=torch.float)
 
         if debug and batch_idx == 10:
             print('Debug Mode. Only train on first 100 batches.')
@@ -212,12 +235,13 @@ def train_func(train_loader, model, device, criterion, optimizer, debug=True, sa
         # SAM
         if sam:
             logits = model(images)
-            targets = targets.view(-1, 1)
-            loss = criterion(logits, targets)
+            # targets = targets.view(-1, 1)
+
+            loss = mixup_criterion(criterion, logits, targets_a, targets_b, lam)
             loss.backward()
             optimizer.first_step(zero_grad=True)
             logits = model(images)
-            loss = criterion(logits, targets)
+            loss = mixup_criterion(criterion, logits, targets_a, targets_b, lam)
             loss.backward()
             optimizer.second_step(zero_grad=True)
         else:
